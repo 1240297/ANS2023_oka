@@ -9,10 +9,17 @@
 #include <sys/uio.h>    /* read, write */
 #include <unistd.h>     /* close, read, write */
 
-#define SERVER_ADDR     "127.0.0.1"
-#define SERVER_PORT     12345
+//#define SERVER_ADDR     "127.0.0.1"
+//#define SERVER_PORT     12345
 
-int main(void) {
+int main(int argc, char *argv[]) { // argc: 数, argv: 中身
+    if (argc != 3) {
+        fprintf(stderr, "Argument error.");
+        return 1;
+    }
+    char *server_ip = argv[1];
+    int server_port = atoi(argv[2]); // atoi: char -> int
+
     int s, cc;
     struct sockaddr_in sa;
     char buf[1024];
@@ -27,8 +34,8 @@ int main(void) {
     memset(&sa, 0, sizeof(sa)); // memsetって何
     sa.sin_len = sizeof(sa); // sin_lenがある場合
     sa.sin_family = AF_INET;
-    sa.sin_port = htons(SERVER_PORT);
-    sa.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    sa.sin_port = htons(server_port);
+    sa.sin_addr.s_addr = inet_addr(server_ip);
 
     // ソケット接続要求 connect() : サーバ側プログラムに接続したい
     fprintf(stderr, "Connecting to the server...\n");
@@ -59,20 +66,17 @@ int main(void) {
         if (FD_ISSET(s, &readfds)) {
             cc = read(s, buf, sizeof(buf));
             if (cc <= 0) break;
-            if (cc == EOF) break;
-            write(1, buf, cc); // サーバからのデータを表示
-            fprintf(stderr,"A");
+            fprintf(stderr, "server> ");
+            write(STDOUT_FILENO, buf, cc); // サーバからのデータを表示
         }
 
         if (FD_ISSET(STDIN_FILENO, &readfds)) {
             cc = read(STDIN_FILENO, buf, sizeof(buf));
             if (cc <= 0) break;
-            if (cc == EOF) break;
             write(s, buf, cc); // 標準入力があったら 内容をサーバへ送信
-            fprintf(stderr,"B");
         }
         
-        fprintf(stderr, "\n\nFinished receiving.\n");
+        //fprintf(stderr, "\n\nFinished receiving.\n");
     }
 
     if (close(s) == -1) {
