@@ -63,27 +63,27 @@ int main(int argc, char *argv[]) { // argc: 数, argv: 中身
             exit(1);
         }
 
+        // サーバからきた
         if (FD_ISSET(s, &readfds)) {
             cc = read(s, buf, sizeof(buf));
-            if (cc <= 0) break;
+            if (cc <= 0) break; // EOF, error
             fprintf(stderr, "server> ");
-            write(STDOUT_FILENO, buf, cc); // サーバからのデータを表示
+            write(STDOUT_FILENO, buf, cc); // サーバからのデータを標準出力
         }
 
+        // 標準入力がきた
         if (FD_ISSET(STDIN_FILENO, &readfds)) {
             cc = read(STDIN_FILENO, buf, sizeof(buf));
-            if (cc <= 0) break;
-            write(s, buf, cc); // 標準入力があったら 内容をサーバへ送信
+            if (cc <= 0) break; // EOF, error
+            write(s, buf, cc); // 内容をサーバへ送信
         }
-        
-        //fprintf(stderr, "\n\nFinished receiving.\n");
     }
 
     if (close(s) == -1) {
         perror("close");
         exit(1);
     }
-    printf("finish!!");
+    printf("\nFinished receiving.\n");
     return 0;
 }
 // 終了
